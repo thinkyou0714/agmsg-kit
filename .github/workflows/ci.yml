@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck
+        run: |
+          sudo apt-get update -y >/dev/null
+          sudo apt-get install -y shellcheck >/dev/null
+          # -S warning: enforce warnings/errors, skip benign info notes
+          # (runtime `source`, indirect expansion, safe `A && b || c`).
+          shellcheck -S warning \
+            install.sh uninstall.sh \
+            scripts/bump-version.sh scripts/lib/paths.sh \
+            tests/smoke.sh tests/test_safety.sh
+
+  smoke:
+    # Both Linux and macOS, to exercise the portable bash/sqlite promises. The
+    # smoke clones the pinned upstream and runs a real send->inbox roundtrip.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Smoke + safety
+        run: |
+          bash tests/smoke.sh
+          bash tests/test_safety.sh

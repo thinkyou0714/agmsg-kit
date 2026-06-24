@@ -1,0 +1,8 @@
+{
+  "name": "agmsg-kit",
+  "description": "Hardened, reproducible installer + governance for fujibee/agmsg cross-agent messaging. Pins upstream by commit, ships PR-ready fixes, wires turn-mode delivery for Claude Code <-> Codex.",
+  "author": "thinkyou0714",
+  "homepage": "https://github.com/thinkyou0714/agmsg-kit",
+  "license": "MIT",
+  "keywords": ["agmsg", "multi-agent", "claude-code", "codex", "messaging"]
+}

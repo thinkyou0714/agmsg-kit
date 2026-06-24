@@ -1,0 +1,30 @@
+# Local parameters / secrets — never commit
+.env
+.env.*
+!.env.example
+
+# agmsg runtime state (machine-local; never belongs in git)
+db/*.db
+db/*.db-wal
+db/*.db-shm
+run/
+teams/
+*/.agmsg
+.claude/settings.local.json
+.codex/hooks.json
+
+# Installer backups
+*.bak
+*.prewinfix.bak
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
