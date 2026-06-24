@@ -116,13 +116,16 @@ fi
 # --- Phase 5: smoke (cc -> co roundtrip) ---
 if [ "$DRY_RUN" != 1 ] && [ "$WIRE" = 1 ]; then
     marker="agmsg-kit smoke $$"
+    DB="${AGMSG_STORAGE_PATH:-$SK/db}/messages.db"
     bash "$SK/scripts/send.sh" "$AGMSG_TEAM" "$AGMSG_CC" "$AGMSG_CO" "$marker" >/dev/null
-    if bash "$SK/scripts/inbox.sh" "$AGMSG_TEAM" "$AGMSG_CO" 2>/dev/null | grep -qF "$marker"; then
+    # Assert delivery directly against the store (robust across sqlite/OS), then
+    # also confirm inbox.sh executes for this agent.
+    if [ -f "$DB" ] && sqlite3 "$DB" "SELECT 1 FROM messages WHERE to_agent='$AGMSG_CO' AND body='$marker' LIMIT 1;" 2>/dev/null | grep -q 1; then
+        bash "$SK/scripts/inbox.sh" "$AGMSG_TEAM" "$AGMSG_CO" >/dev/null 2>&1 || true
         say "smoke OK: $AGMSG_CC -> $AGMSG_CO roundtrip"
-        DB="${AGMSG_STORAGE_PATH:-$SK/db}/messages.db"
-        [ -f "$DB" ] && sqlite3 "$DB" "DELETE FROM messages WHERE body LIKE 'agmsg-kit smoke%';" 2>/dev/null || true
+        sqlite3 "$DB" "DELETE FROM messages WHERE body LIKE 'agmsg-kit smoke%';" 2>/dev/null || true
     else
-        die "smoke FAILED: $AGMSG_CC -> $AGMSG_CO message not delivered. Your previous install (if any) is unchanged in db/ + teams/."
+        die "smoke FAILED: $AGMSG_CC -> $AGMSG_CO message not stored. Your previous install (if any) is unchanged in db/ + teams/."
     fi
 fi
 

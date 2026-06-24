@@ -54,24 +54,30 @@ for p in "$ROOT"/patches/*.patch; do
     fi
 done
 
-echo "== roundtrip (patched scripts) =="
+echo "== roundtrip (patched send.sh -> DB) =="
+# Assert delivery by querying the DB directly: this tests what the KIT changes
+# (send.sh's INSERT + escaping). inbox.sh's *display* uses upstream's char(31)
+# rendering, whose byte-handling varies by sqlite version/OS — so we assert it
+# RUNS, not its exact formatting.
 AGMSG_STORAGE_PATH="$(mktemp -d)"
 export AGMSG_STORAGE_PATH
 SKS="$CLONE/scripts"
-bash "$SKS/send.sh" t cc codex "hello roundtrip" >/dev/null 2>&1 || bad "send"
-if bash "$SKS/inbox.sh" t codex 2>/dev/null | grep -qF "hello roundtrip"; then
-    pass "send -> inbox roundtrip"
+DB="$AGMSG_STORAGE_PATH/messages.db"
+bash "$SKS/send.sh" t cc codex "hello roundtrip" >/dev/null 2>&1 || bad "send.sh exited non-zero"
+if [ -f "$DB" ] && sqlite3 "$DB" "SELECT body FROM messages WHERE team='t' AND to_agent='codex';" 2>/dev/null | grep -qF "hello roundtrip"; then
+    pass "send.sh inserted message (DB roundtrip)"
 else
-    bad "send -> inbox roundtrip"
+    bad "send.sh did not insert the message"
 fi
-if bash "$SKS/history.sh" t >/dev/null 2>&1; then pass "history runs"; else bad "history"; fi
+if bash "$SKS/inbox.sh" t codex >/dev/null 2>&1; then pass "inbox.sh runs"; else bad "inbox.sh errored"; fi
+if bash "$SKS/history.sh" t >/dev/null 2>&1; then pass "history.sh runs"; else bad "history.sh errored"; fi
 
-echo "== 0010 regression: quoted identity must not break the INSERT =="
-if bash "$SKS/send.sh" t "O'Brien" codex "quoted-from-ok" >/dev/null 2>&1 \
-    && bash "$SKS/inbox.sh" t codex 2>/dev/null | grep -qF "quoted-from-ok"; then
-    pass "send from O'Brien (SQL-escaped) roundtrip"
+echo "== 0010 regression: quoted from_agent stored intact (no SQL break) =="
+if bash "$SKS/send.sh" t "O'Brien" codex "quoted-ok" >/dev/null 2>&1 \
+    && sqlite3 "$DB" "SELECT from_agent FROM messages WHERE body='quoted-ok';" 2>/dev/null | grep -qF "O'Brien"; then
+    pass "single-quote in from_agent escaped + stored"
 else
-    bad "0010: a single-quote in from_agent broke send/inbox"
+    bad "0010: a single-quote in from_agent broke the INSERT"
 fi
 
 echo "== 0011 regression: suggest= guard present in patched check-inbox.sh =="
