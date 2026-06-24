@@ -1,0 +1,11 @@
+# Force LF for all text so shell scripts run under bash on every platform and
+# the .patch files apply against the LF upstream checkout (CRLF breaks both).
+* text=auto eol=lf
+
+*.sh    text eol=lf
+*.patch text eol=lf
+*.py    text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+Makefile text eol=lf
