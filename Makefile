@@ -2,7 +2,7 @@
 SHELL := /usr/bin/env bash
 VERSION := $(shell tr -d '[:space:]' < VERSION)
 
-SH_FILES := install.sh uninstall.sh scripts/bump-version.sh scripts/lib/paths.sh tests/smoke.sh tests/test_safety.sh
+SH_FILES := install.sh uninstall.sh scripts/bump-version.sh scripts/lib/paths.sh scripts/backup.sh scripts/prune.sh tests/smoke.sh tests/test_safety.sh
 
 .PHONY: help
 help: ## Show this help
@@ -38,11 +38,24 @@ refresh-patches: ## How to re-roll patches after bumping the pin (prints guidanc
 	@echo "  3. 'make verify-patches' must pass. Update VENDORED.md (SHA, date, drift notes)."
 
 .PHONY: doctor
-doctor: ## Read-only health check of the installed skill
+doctor: ## Read-only health check of the installed skill (delivery/watcher state)
 	@command -v sqlite3 >/dev/null && echo "  sqlite3: $$(sqlite3 --version | awk '{print $$1}')" || echo "  sqlite3: MISSING"
 	@command -v git >/dev/null && echo "  git: ok" || echo "  git: MISSING"
 	@SK="$${AGMSG_SKILL_DIR:-$$HOME/.agents/skills/agmsg}"; \
-		[ -f "$$SK/.agmsg" ] && echo "  installed: $$SK" || echo "  installed: no ($$SK)"
+		if [ -f "$$SK/.agmsg" ]; then \
+			echo "  installed: $$SK"; \
+			echo "  messages:  $$(sqlite3 "$$SK/db/messages.db" 'SELECT count(*) FROM messages;' 2>/dev/null || echo n/a)"; \
+			echo "  watchers:  $$(ls "$$SK/run/"watch.*.pid 2>/dev/null | wc -l | tr -d ' ') live pidfile(s)"; \
+			echo "  teams:     $$(ls "$$SK/teams" 2>/dev/null | tr '\n' ' ')"; \
+		else echo "  installed: no ($$SK)"; fi
+
+.PHONY: backup
+backup: ## Snapshot the message store + teams (backup.sh [DEST])
+	@bash scripts/backup.sh $(DEST)
+
+.PHONY: prune
+prune: ## Delete READ messages older than N days (prune.sh, N=DAYS, default 30)
+	@bash scripts/prune.sh $(DAYS)
 
 .PHONY: bump
 bump: ## Bump version: make bump V=patch|minor|major|X.Y.Z

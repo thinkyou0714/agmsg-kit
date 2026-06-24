@@ -28,23 +28,37 @@ jobs:
           shellcheck -S warning \
             install.sh uninstall.sh \
             scripts/bump-version.sh scripts/lib/paths.sh \
+            scripts/backup.sh scripts/prune.sh \
             tests/smoke.sh tests/test_safety.sh
+      - name: actionlint
+        run: |
+          bash <(curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
+          ./actionlint -color
 
   smoke:
-    # Both Linux and macOS, to exercise the portable bash/sqlite promises. The
-    # smoke clones the pinned upstream and runs a real send->inbox roundtrip.
+    # ubuntu + macos are required; windows-latest is best-effort (it exercises
+    # the same Git Bash + sqlite stack the primary user runs, but runner setup
+    # is fiddly, so it never blocks).
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     timeout-minutes: 12
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Install sqlite (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install sqlite -y --no-progress
       - name: Smoke + safety
         run: |
           bash tests/smoke.sh

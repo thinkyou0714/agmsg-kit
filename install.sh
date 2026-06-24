@@ -10,6 +10,7 @@ set -euo pipefail
 # Usage:
 #   ./install.sh [--dry-run] [--cmd NAME] [--team T] [--cc NAME] [--co NAME]
 #                [--project PATH] [--pin SHA] [--from CLONE_DIR] [--no-wire]
+#                [--also TYPE:NAME ...]
 #
 # Parameters resolve from: flags > .env > defaults (see .env.example).
 
@@ -20,6 +21,7 @@ ROOT="$(cd "$(dirname "$0")" && pwd)"
 DRY_RUN=0
 FROM=""
 WIRE=1
+ALSO=()
 
 say() { printf '  %s\n' "$*"; }
 die() { printf 'agmsg-kit: %s\n' "$*" >&2; exit 1; }
@@ -38,6 +40,7 @@ while [ $# -gt 0 ]; do
         --project) AGMSG_PROJECT="$2"; shift 2 ;;
         --pin) AGMSG_PIN="$2"; shift 2 ;;
         --from) FROM="$2"; shift 2 ;;
+        --also) ALSO+=("$2"); shift 2 ;;
         --no-wire) WIRE=0; shift ;;
         -h|--help) sed -n '4,16p' "$0"; exit 0 ;;
         *) die "unknown arg: $1 (try --help)" ;;
@@ -55,6 +58,13 @@ if [ -n "$SQLV" ]; then
     _min="$(printf '%s\n%s\n' "$SQLV" 3.51.3 | sort -V | head -n1)"
     [ "$_min" = 3.51.3 ] || say "WARN: sqlite3 $SQLV < 3.51.3 — the WAL multi-writer corruption fix landed in 3.51.3; upgrade recommended."
 fi
+# WSL/Git-Bash HOME split: the store lives under $HOME/.agents. If your agents
+# run on the other side (Windows-native Git Bash vs WSL), they use a SEPARATE
+# DB and won't see each other's messages.
+case "$(uname -r 2>/dev/null)" in
+    *microsoft*|*Microsoft*|*WSL*)
+        say "WARN: running under WSL — store is under HOME=$HOME. If your agents run on Windows-native Git Bash (HOME=/c/Users/...), they use a SEPARATE store. Keep both on one side." ;;
+esac
 
 # --- Phase 1: clone the pinned upstream (or reuse --from) ---
 if [ -n "$FROM" ]; then
@@ -103,6 +113,15 @@ if [ "$WIRE" = 1 ]; then
     run "join $AGMSG_CO (codex)"       bash "$SK/scripts/join.sh" "$AGMSG_TEAM" "$AGMSG_CO" codex "$AGMSG_PROJECT"
     run "delivery: turn (claude-code)" bash "$SK/scripts/delivery.sh" set turn claude-code "$AGMSG_PROJECT"
     run "delivery: turn (codex)"       bash "$SK/scripts/delivery.sh" set turn codex "$AGMSG_PROJECT"
+    # Extra agents: --also <type>:<name> (e.g. --also gemini:gem --also copilot:cop)
+    for _spec in ${ALSO[@]+"${ALSO[@]}"}; do
+        _t="${_spec%%:*}"; _n="${_spec#*:}"
+        if [ -z "$_t" ] || [ -z "$_n" ] || [ "$_t" = "$_spec" ]; then
+            say "WARN: ignoring malformed --also '$_spec' (want type:name)"; continue
+        fi
+        run "join $_n ($_t)"       bash "$SK/scripts/join.sh" "$AGMSG_TEAM" "$_n" "$_t" "$AGMSG_PROJECT"
+        run "delivery: turn ($_t)" bash "$SK/scripts/delivery.sh" set turn "$_t" "$AGMSG_PROJECT"
+    done
     # Born-ignore the machine-local Codex hook so it is never committed.
     if [ "$DRY_RUN" != 1 ]; then
         GD="$(git -C "$AGMSG_PROJECT" rev-parse --absolute-git-dir 2>/dev/null || true)"

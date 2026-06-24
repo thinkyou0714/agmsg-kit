@@ -33,10 +33,10 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 13 | `cygpath -w` for `readfile()` paths to native sqlite3 (upstream) | 4×2 | [done-upstream] |
 | 14 | Force LF on all shipped shell scripts (CRLF breaks bash) | 4×1 | [done] |
 | 15 | CI smoke on macOS in addition to Linux (portable-path coverage) | 3×1 | [done] |
-| 16 | Add a `windows-latest` Git-Bash CI leg (best-effort) | 3×3 | [rec] |
+| 16 | Add a `windows-latest` Git-Bash CI leg (best-effort) | 3×3 | [done] |
 | 17 | Contribute a `cygpath -m` fix for MSYS `/c/` paths (upstream #197) | 4×3 | [road] |
 | 18 | Document scoop sqlite ≥ 3.50 as the Windows requirement for `-escape off` | 3×1 | [done] |
-| 19 | Detect WSL-vs-GitBash `HOME` split and warn (avoids two DBs) | 3×2 | [rec] |
+| 19 | Detect WSL-vs-GitBash `HOME` split and warn (avoids two DBs) | 3×2 | [done] |
 
 ## C. Security / untrusted-peer
 
@@ -77,7 +77,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 42 | `history.sh` already provides a full audit trail of all messages | 3×1 | [done-upstream] |
 | 43 | Count unread-by-agent / messages-per-day as a tiny metrics view | 2×2 | [road] |
 | 44 | Optional structured event log (JSONL) alongside the message table | 2×3 | [road] |
-| 45 | Surface delivery-mode + watcher state in `make doctor` | 3×2 | [rec] |
+| 45 | Surface delivery-mode + watcher state in `make doctor` | 3×2 | [done] |
 | 46 | Cost/turn estimate per agent conversation | 2×4 | [road] |
 
 ## F. Testing / CI
@@ -93,7 +93,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 53 | Migrate smoke to `bats-core` for richer assertions | 2×3 | [road] |
 | 54 | `shfmt --diff` formatting gate | 2×2 | [rec] |
 | 55 | Weekly CI job: diff pin vs upstream `main`, open issue on drift | 3×3 | [road] |
-| 56 | `actionlint` on the workflow YAML | 2×1 | [rec] |
+| 56 | `actionlint` on the workflow YAML | 2×1 | [done] |
 
 ## G. Developer experience
 
@@ -114,10 +114,10 @@ larger/roadmap · `[rej]` rejected (reason given).
 | # | Idea | I×E | Status |
 |---|---|---|---|
 | 66 | Warn when `sqlite3 < 3.51.3` (WAL multi-writer corruption fix) | 4×1 | [done] |
-| 67 | Backup helper that copies `messages.db` + `-wal` + `-shm` together | 3×2 | [rec] |
+| 67 | Backup helper that copies `messages.db` + `-wal` + `-shm` together | 3×2 | [done] |
 | 68 | `VACUUM INTO` snapshot for a defragmented offline backup | 2×2 | [road] |
 | 69 | `schema_version` in a `_meta` table + idempotent migrations | 3×3 | [road] |
-| 70 | Periodic prune/archive of read messages older than N days | 3×2 | [rec] |
+| 70 | Periodic prune/archive of read messages older than N days | 3×2 | [done] |
 | 71 | `PRAGMA auto_vacuum=INCREMENTAL` at init | 2×2 | [road] |
 | 72 | Never copy a live WAL DB without backup API / `VACUUM INTO` (doc) | 3×1 | [done-doc] |
 
@@ -128,9 +128,9 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 73 | `(name, team)` identity with per-project registrations (upstream #15) | 4×3 | [done-upstream] |
 | 74 | Project-path resolution via markers/ancestor/git-common-dir (upstream #92) | 4×3 | [done-upstream] |
 | 75 | `check-inbox.sh` honors `suggest=` so cross-project ids don't mis-deliver | 3×1 | [done] |
-| 76 | Support more than two agents (gemini/copilot) via the same install flow | 3×2 | [rec] |
+| 76 | Support more than two agents (gemini/copilot) via the same install flow | 3×2 | [done] |
 | 77 | Per-team kickoff/governance preset files | 2×3 | [road] |
-| 78 | `rename.sh`/`rename-team.sh` SQL-escape sweep (same root cause as 0010) | 2×2 | [rec] |
+| 78 | `rename.sh`/`rename-team.sh` SQL-escape sweep (patch 0012; JSON-path sep.) | 2×2 | [done] |
 
 ## J. Install / reproducibility / packaging
 
@@ -154,7 +154,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 89 | `AGENTS.md` repo-dev rules; `CONTRIBUTING.md` release ceremony | 2×1 | [done] |
 | 90 | Bug-report issue template requiring `make doctor` output | 2×1 | [done] |
 | 91 | This `IDEAS.md` roadmap | 3×2 | [done] |
-| 92 | A short "first two-agent task" walkthrough | 2×1 | [rec] |
+| 92 | A short "first two-agent task" walkthrough | 2×1 | [done] |
 
 ## L. Local / editor integration
 
@@ -167,13 +167,18 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 97 | Worktree-aware project resolution for parallel editor sessions | 2×3 | [road] |
 | 98 | Share one redaction lib across tools instead of copying it | 2×2 | [rec] |
 | 99 | Optional local-LLM summaries of long agmsg threads | 1×4 | [road] |
-| 100 | Monthly upstream-review checklist (new tags, Windows issues) | 3×1 | [rec] |
+| 100 | Monthly upstream-review checklist (new tags, Windows issues) | 3×1 | [done] |
 
 ---
 
-### What 0.1.0 deliberately does **not** do
+### What this kit deliberately does **not** do
 - No transport-level turn enforcement, message schema, signing, or broker —
   agmsg is intentionally a dumb floor; that discipline lives in prompts (D, C).
 - No committed upstream copy (#84) or npm bootstrapper (#85).
+- Patch 0012 escapes the **SQL** interpolation in `rename*.sh`; the separate
+  **JSON-path** interpolation there (`'$.agents.$NAME'`) is left as a tracked
+  follow-up (agent names are simple in practice) — a half-fix would be worse.
+- `shfmt` formatting gate (#54) skipped for now — avoids churn; ShellCheck is the
+  gate. `secret_redact` sharing (#98) skipped: the public repo stays self-contained.
 - Redis/multi-machine backend, bats migration, schema-migration framework, and
-  cost dashboards are roadmap, not 0.1.0.
+  cost dashboards are roadmap.

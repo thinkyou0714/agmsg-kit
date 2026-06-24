@@ -3,6 +3,28 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.2.0] - 2026-06-24
+
+### Added
+- `patches/0012` — `rename.sh` + `rename-team.sh` escape interpolated SQL
+  identifiers (parity with 0010; PR-ready). The JSON-path interpolation in
+  `rename.sh` is a separate concern, tracked in `docs/IDEAS.md`.
+- `scripts/backup.sh` (`make backup`) — WAL-checkpointed snapshot of the message
+  store + teams. `scripts/prune.sh` (`make prune DAYS=N`) — delete READ messages
+  older than N days (unread never touched).
+- `install.sh`: `--also TYPE:NAME` to join extra agents (e.g. gemini/copilot);
+  WSL/Git-Bash HOME-split warning.
+- `make doctor` now reports message count, live watcher pidfiles, and teams.
+- `docs/WALKTHROUGH.md` (first two-agent task) and `docs/UPSTREAM-REVIEW.md`
+  (monthly pin/patch review checklist).
+- CI: `actionlint` on the workflows; best-effort `windows-latest` smoke leg
+  (Git Bash + sqlite via choco), `continue-on-error` so it never blocks.
+
+### Fixed
+- `patches/0011` now uses portable `grep -Eq` (the previous `grep -q "A\|B"` is a
+  GNU-only extension; on macOS BSD grep `\|` is literal, silently no-op'ing the
+  `suggest=` guard). Smoke now exercises the alternation behaviorally.
+
 ## [0.1.0] - 2026-06-24
 
 ### Added

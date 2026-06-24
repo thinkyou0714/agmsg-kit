@@ -33,7 +33,23 @@ for p in "$ROOT"/patches/*.patch; do
         bad "malformed/empty patch $(basename "$p")"
     fi
 done
-if [ "$n" -ge 2 ]; then pass "patch set present ($n patches)"; else bad "expected >=2 patches, found $n"; fi
+if [ "$n" -ge 3 ]; then pass "patch set present ($n patches)"; else bad "expected >=3 patches, found $n"; fi
+
+# Guard: 0012 escapes identifiers in both rename scripts.
+P0012="$ROOT/patches/0012-rename-escape-sql-identifiers.patch"
+if [ -f "$P0012" ] && grep -qF '_agmsg_sqlesc "$NEW_NAME"' "$P0012" && grep -qF '_agmsg_sqlesc "$NEW_TEAM"' "$P0012"; then
+    pass "0012 escapes rename + rename-team identifiers"
+else
+    bad "0012 missing rename identifier escaping"
+fi
+
+# Guard: 0011 uses the portable grep -Eq form (not GNU-only \|).
+P0011="$ROOT/patches/0011-check-inbox-handle-suggest-identity.patch"
+if grep -qF 'grep -Eq "not_joined=true|suggest=true"' "$P0011"; then
+    pass "0011 uses portable grep -Eq"
+else
+    bad "0011 not using portable grep -Eq (BSD grep would no-op)"
+fi
 
 # Guard: the SQL-escaping fix must escape all four interpolated fields.
 P0010="$ROOT/patches/0010-send-escape-all-sql-fields.patch"

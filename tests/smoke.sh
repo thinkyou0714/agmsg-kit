@@ -95,6 +95,23 @@ else
     bad "suggest= alternation does not fire on this platform's grep"
 fi
 
+echo "== 0012 regression: rename* escape SQL identifiers =="
+if grep -qF '_agmsg_sqlesc "$NEW_NAME"' "$CLONE/scripts/rename.sh" \
+    && grep -qF '_agmsg_sqlesc "$NEW_TEAM"' "$CLONE/scripts/rename-team.sh"; then
+    pass "rename/rename-team escape SQL identifiers"
+else
+    bad "0012: rename SQL-escape missing"
+fi
+if bash -n "$CLONE/scripts/rename.sh" 2>/dev/null && bash -n "$CLONE/scripts/rename-team.sh" 2>/dev/null; then
+    pass "patched rename* syntax OK"
+else
+    bad "patched rename* syntax error"
+fi
+
+echo "== 0.2.0 helpers =="
+# prune.sh resolves the DB via AGMSG_STORAGE_PATH (set above); 9999d -> no-op.
+if bash "$ROOT/scripts/prune.sh" 9999 >/dev/null 2>&1; then pass "prune.sh runs (no-op)"; else bad "prune.sh errored"; fi
+
 echo
 if [ "$fail" = 0 ]; then echo "smoke: PASS"; else echo "smoke: $fail FAIL"; fi
 exit "$fail"
