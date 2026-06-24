@@ -1,5 +1,5 @@
 diff --git a/scripts/check-inbox.sh b/scripts/check-inbox.sh
-index dc067b7..0969b93 100755
+index dc067b7..72fb87d 100755
 --- a/scripts/check-inbox.sh
 +++ b/scripts/check-inbox.sh
 @@ -62,7 +62,10 @@ fi
@@ -10,7 +10,7 @@ index dc067b7..0969b93 100755
 +# suggest=true means this identity is registered only under a DIFFERENT
 +# project, so it is not joined here -> deliver nothing (mirror not_joined).
 +# Without this the else-branch extracts "agents=" as the agent name. agmsg-kit.
-+if echo "$WHOAMI" | grep -q "not_joined=true\|suggest=true"; then
++if echo "$WHOAMI" | grep -Eq "not_joined=true|suggest=true"; then
    exit 0
  fi
  

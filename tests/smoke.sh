@@ -80,12 +80,19 @@ else
     bad "0010: a single-quote in from_agent broke the INSERT"
 fi
 
-echo "== 0011 regression: suggest= guard present in patched check-inbox.sh =="
-if grep -qF 'not_joined=true\|suggest=true' "$CLONE/scripts/check-inbox.sh" \
+echo "== 0011 regression: suggest= guard (portable + behavioral) =="
+if grep -qF 'grep -Eq "not_joined=true|suggest=true"' "$CLONE/scripts/check-inbox.sh" \
     && grep -qF "sed -n 's/^agent=" "$CLONE/scripts/check-inbox.sh"; then
-    pass "check-inbox handles suggest= + anchors ^agent="
+    pass "check-inbox uses portable suggest= guard + ^agent= anchor"
 else
-    bad "0011: suggest= guard or ^agent= anchor missing"
+    bad "0011: suggest= guard non-portable (BSD grep) or ^agent= anchor missing"
+fi
+# The alternation must actually fire with THIS platform's grep (catches the BSD
+# vs GNU '\|' trap that a static file check would mask).
+if printf '%s' 'suggest=true agents=a,b teams=lab' | grep -Eq "not_joined=true|suggest=true"; then
+    pass "suggest= alternation fires (portable ERE)"
+else
+    bad "suggest= alternation does not fire on this platform's grep"
 fi
 
 echo

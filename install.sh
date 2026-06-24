@@ -123,7 +123,7 @@ if [ "$DRY_RUN" != 1 ] && [ "$WIRE" = 1 ]; then
     if [ -f "$DB" ] && sqlite3 "$DB" "SELECT 1 FROM messages WHERE to_agent='$AGMSG_CO' AND body='$marker' LIMIT 1;" 2>/dev/null | grep -q 1; then
         bash "$SK/scripts/inbox.sh" "$AGMSG_TEAM" "$AGMSG_CO" >/dev/null 2>&1 || true
         say "smoke OK: $AGMSG_CC -> $AGMSG_CO roundtrip"
-        sqlite3 "$DB" "DELETE FROM messages WHERE body LIKE 'agmsg-kit smoke%';" 2>/dev/null || true
+        sqlite3 "$DB" "DELETE FROM messages WHERE to_agent='$AGMSG_CO' AND body='$marker';" 2>/dev/null || true
     else
         die "smoke FAILED: $AGMSG_CC -> $AGMSG_CO message not stored. Your previous install (if any) is unchanged in db/ + teams/."
     fi

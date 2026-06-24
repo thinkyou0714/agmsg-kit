@@ -156,17 +156,17 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 91 | This `IDEAS.md` roadmap | 3×2 | [done] |
 | 92 | A short "first two-agent task" walkthrough | 2×1 | [rec] |
 
-## L. LAB integration (this machine)
+## L. Local / editor integration
 
 | # | Idea | I×E | Status |
 |---|---|---|---|
-| 93 | Point `~/.claude/rules/agmsg.md` at agmsg-kit; fix stale "upstream PR済" line | 4×1 | [rec] |
-| 94 | Reconcile with `install-agmsg.sh` (kit becomes the SSOT reproducer) | 3×2 | [rec] |
-| 95 | Honor `~/.claude/state/codex_kill_switch.flag` before agmsg sends | 3×3 | [road] |
-| 96 | Feed kit failures into `claude-doctor` observability | 2×3 | [road] |
-| 97 | ccmux / worktree-aware project resolution for parallel sessions | 2×3 | [road] |
-| 98 | Pair with the LAB `secret_redact` lib (single source) instead of a copy | 2×2 | [rec] |
-| 99 | Optional LiteLLM-routed local summaries of long agmsg threads | 1×4 | [road] |
+| 93 | Point your agent-rules doc at agmsg-kit as the canonical reproducer | 4×1 | [rec] |
+| 94 | Make this kit the single source of truth, retiring any bespoke installer | 3×2 | [rec] |
+| 95 | Honor a kill-switch flag before agmsg sends (incident circuit-breaker) | 3×3 | [road] |
+| 96 | Feed kit failures into your observability / doctor tooling | 2×3 | [road] |
+| 97 | Worktree-aware project resolution for parallel editor sessions | 2×3 | [road] |
+| 98 | Share one redaction lib across tools instead of copying it | 2×2 | [rec] |
+| 99 | Optional local-LLM summaries of long agmsg threads | 1×4 | [road] |
 | 100 | Monthly upstream-review checklist (new tags, Windows issues) | 3×1 | [rec] |
 
 ---
