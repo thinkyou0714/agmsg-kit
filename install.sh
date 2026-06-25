@@ -30,12 +30,16 @@ say() { printf '  %s\n' "$*"; }
 # ~/.claude/failures.jsonl) to integrate with your observability. Redacted.
 _log_failure() {
     [ -n "${AGMSG_FAILURE_LOG:-}" ] || return 0
-    local detail ts
-    detail="$(printf '%s' "$1" | python3 "$ROOT/home/lib/secret_redact.py" 2>/dev/null || printf '%s' "$1")"
-    ts="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
-    detail="$(printf '%s' "$detail" | python3 -c 'import json,sys; sys.stdout.write(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$1")"
-    printf '{"ts":"%s","hook":"agmsg-kit","event":"install_fail","detail":%s}\n' "$ts" "$detail" \
-        >> "$AGMSG_FAILURE_LOG" 2>/dev/null || true
+    # python3 is required for BOTH redaction and JSON escaping. Without it, skip
+    # the line entirely — never fall back to writing a raw (unredacted) or
+    # unescaped (malformed-JSON) value. Redact first, then json.dumps the whole
+    # object so the output is always valid JSON and never leaks a secret byte.
+    command -v python3 >/dev/null 2>&1 || return 0
+    local line
+    line="$(printf '%s' "$1" \
+        | python3 "$ROOT/home/lib/secret_redact.py" 2>/dev/null \
+        | python3 -c 'import json,sys,datetime; d=sys.stdin.read(); sys.stdout.write(json.dumps({"ts": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"), "hook": "agmsg-kit", "event": "install_fail", "detail": d}))' 2>/dev/null)" || return 0
+    [ -n "$line" ] && printf '%s\n' "$line" >> "$AGMSG_FAILURE_LOG" 2>/dev/null || true
 }
 die() { _log_failure "$*"; printf 'agmsg-kit: %s\n' "$*" >&2; exit 1; }
 run() {

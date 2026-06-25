@@ -6,18 +6,27 @@ makes every local change reviewable as a real diff, and lets those diffs go
 upstream as PRs.
 
 - **Upstream:** <https://github.com/fujibee/agmsg> (MIT)
-- **Pinned:** `v1.1.0` = `e3031b8336e4cde99af863718d318df436e74206`
-- **Reviewed:** 2026-06-24
+- **Pinned:** `v1.1.1` = `b4492e2019a140938292b7684bd3bad23c2774f5`
+- **Reviewed:** 2026-06-25
+
+> **v1.1.0 → v1.1.1 bump (2026-06-25):** gains upstream's `delivery.sh`
+> `kill_all_watchers` `(project,type)` scoping fix, Monitor-arg `printf %q`
+> quoting (#188), watcher session-death teardown (#67), and the `grok-build`
+> driver. All 5 kit patches verified to apply cleanly to v1.1.1; the bugs they
+> fix all still persist upstream.
 
 ## Patch set (applied in order by `install.sh`)
 
 | Patch | What | Status |
 |---|---|---|
-| `0010-send-escape-all-sql-fields.patch` | `send.sh` escapes `team/from/to/body` as SQL string literals (upstream escapes only `body`). Correctness + injection hardening. | PR-ready |
-| `0011-check-inbox-handle-suggest-identity.patch` | `check-inbox.sh` treats whoami `suggest=true` like `not_joined`, and anchors `^agent=` so it can't substring-match `agents=`. | PR-ready |
+| `0010-send-escape-all-sql-fields.patch` | `send.sh` escapes `team/from/to/body` as SQL string literals (upstream escapes only `body`). | PR-ready |
+| `0011-check-inbox-handle-suggest-identity.patch` | `check-inbox.sh` treats whoami `suggest=true` like `not_joined` + anchors `^agent=`. | PR-ready |
+| `0012-rename-escape-sql-identifiers.patch` | `rename.sh`/`rename-team.sh` escape SQL identifiers in the `UPDATE`s. | PR-ready |
+| `0013-send-body-size-limit.patch` | `send.sh` rejects oversized bodies (`AGMSG_MAX_BODY_BYTES`; platform-aware default) — runaway cap **and** avoids the `Argument list too long` crash from passing the whole INSERT as one `sqlite3` arg (~32K Windows cmdline limit). | PR-ready |
+| `0014-validate-agent-name.patch` | adds `agmsg_validate_agent_name` (rejects `. / \ " [ ]` / control), called in `join.sh` — closes the `$.agents.$NAME` JSON-path misrouting. **Stricter than upstream** (rejects exotic names); conservative charset. | PR-ready |
 
-Both verified to apply cleanly to the pinned commit and to pass `bash -n` +
-the smoke roundtrip.
+All five verified to apply cleanly to the pinned commit (in order) and to pass
+`bash -n` + the smoke roundtrip + behavioral 0013/0014 tests.
 
 ## Why the patch set is small (verify, don't assume)
 

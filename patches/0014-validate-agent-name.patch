@@ -1,0 +1,43 @@
+diff --git a/scripts/join.sh b/scripts/join.sh
+index cdff6f1..ecc24bd 100755
+--- a/scripts/join.sh
++++ b/scripts/join.sh
+@@ -30,6 +30,7 @@ TEAMS_DIR="$SCRIPT_DIR/../teams"
+ # shellcheck disable=SC1091
+ source "$SCRIPT_DIR/lib/validate.sh"
+ agmsg_validate_team_name "$TEAM" || exit 1
++agmsg_validate_agent_name "$AGENT_ID" || exit 1
+ 
+ # Resolve the session's real project root from the passed pwd (see #92), so an
+ # agent-driven join from a subdir/worktree registers under the project the
+diff --git a/scripts/lib/validate.sh b/scripts/lib/validate.sh
+index 8bdfe9d..8085fdb 100644
+--- a/scripts/lib/validate.sh
++++ b/scripts/lib/validate.sh
+@@ -45,3 +45,26 @@ agmsg_validate_team_name() {
+   esac
+   return 0
+ }
++
++# Agent names are interpolated into a SQLite JSON path ($.agents.<name>); '.',
++# '[', ']', '"' would misroute the path (silent wrong-key / array index), and
++# '/' '\' / control chars are path/format hazards. UTF-8 (>= 0x80) is fine.
++agmsg_validate_agent_name() {
++  local name="$1"
++  if [ -z "$name" ]; then
++    echo "agmsg: invalid agent name: must not be empty" >&2
++    return 1
++  fi
++  case "$name" in
++    .|..)
++      echo "agmsg: invalid agent name '$name': '.' and '..' are not allowed" >&2
++      return 1 ;;
++    -*)
++      echo "agmsg: invalid agent name '$name': must not start with '-'" >&2
++      return 1 ;;
++    *[./\\\"]* | *[][]* | *[[:cntrl:]]*)
++      echo "agmsg: invalid agent name '$name': must not contain . / \ \" [ ] or control characters" >&2
++      return 1 ;;
++  esac
++  return 0
++}

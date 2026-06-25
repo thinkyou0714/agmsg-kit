@@ -14,6 +14,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 DAYS="${1:-30}"
 case "$DAYS" in ''|*[!0-9]*) echo "usage: prune.sh [DAYS]" >&2; exit 1 ;; esac
+# Reject 0: '-0 days' is 'now', which would delete EVERY read message. Require a
+# real retention window.
+[ "$DAYS" -ge 1 ] 2>/dev/null || { echo "agmsg-kit: DAYS must be >= 1 (got '$DAYS')" >&2; exit 1; }
 
 DB="${AGMSG_STORAGE_PATH:-$AGMSG_SKILL_DIR/db}/messages.db"
 [ -f "$DB" ] || { echo "agmsg-kit: no DB at $DB"; exit 0; }

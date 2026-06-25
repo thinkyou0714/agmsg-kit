@@ -21,7 +21,8 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 6 | Retry-once-after-init on first concurrent write (upstream #114) | 3×2 | [done-upstream] |
 | 7 | `mkdir`-mutex for actas stale-lock reclaim (upstream) | 3×3 | [done-upstream] |
 | 8 | Wrap Stop-hook inbox check in `timeout N` so a hang never blocks a turn | 4×2 | [rec] |
-| 9 | Bound message body size at `send.sh` (~2 KB) to cap a runaway payload | 3×2 | [rec] |
+| 9 | Bound message body size at `send.sh` (patch 0013; platform-aware default) | 3×2 | [done] |
+| 9b | Upstream: pipe SQL via stdin (not argv) to remove the ARG_MAX limit entirely | 4×3 | [road] |
 | 10 | Single-writer assertion / advisory lock around `config.sh set` (YAML race) | 2×2 | [road] |
 
 ## B. Windows / cross-platform
@@ -160,8 +161,8 @@ larger/roadmap · `[rej]` rejected (reason given).
 
 | # | Idea | I×E | Status |
 |---|---|---|---|
-| 93 | Point your agent-rules doc at agmsg-kit as the canonical reproducer | 4×1 | [rec] |
-| 94 | Make this kit the single source of truth, retiring any bespoke installer | 3×2 | [rec] |
+| 93 | Point your agent-rules doc at agmsg-kit as the canonical reproducer | 4×1 | [done] |
+| 94 | Make this kit the single source of truth, retiring any bespoke installer | 3×2 | [done] |
 | 95 | Honor a kill-switch flag before agmsg sends (incident circuit-breaker) | 3×3 | [road] |
 | 96 | Feed kit failures into your observability / doctor tooling | 2×3 | [road] |
 | 97 | Worktree-aware project resolution for parallel editor sessions | 2×3 | [road] |

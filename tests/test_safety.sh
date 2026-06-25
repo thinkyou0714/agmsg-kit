@@ -33,7 +33,21 @@ for p in "$ROOT"/patches/*.patch; do
         bad "malformed/empty patch $(basename "$p")"
     fi
 done
-if [ "$n" -ge 3 ]; then pass "patch set present ($n patches)"; else bad "expected >=3 patches, found $n"; fi
+if [ "$n" -ge 5 ]; then pass "patch set present ($n patches)"; else bad "expected >=5 patches, found $n"; fi
+
+# Guard: 0013 body-size + 0014 agent-name validation present.
+P0013="$ROOT/patches/0013-send-body-size-limit.patch"
+if [ -f "$P0013" ] && grep -qF 'AGMSG_MAX_BODY_BYTES' "$P0013" && grep -qF 'too large' "$P0013"; then
+    pass "0013 body-size guard present"
+else
+    bad "0013 body-size guard missing"
+fi
+P0014="$ROOT/patches/0014-validate-agent-name.patch"
+if [ -f "$P0014" ] && grep -qF 'agmsg_validate_agent_name' "$P0014"; then
+    pass "0014 agent-name validation present"
+else
+    bad "0014 agent-name validation missing"
+fi
 
 # Guard: 0012 escapes identifiers in both rename scripts.
 P0012="$ROOT/patches/0012-rename-escape-sql-identifiers.patch"
@@ -64,7 +78,7 @@ echo "== opt-in failure log (AGMSG_FAILURE_LOG) =="
 flog="$(mktemp)"
 # Trigger a die() via an unknown flag; assert a redacted JSON line is appended.
 AGMSG_FAILURE_LOG="$flog" bash "$ROOT/install.sh" --bogus-flag-xyz >/dev/null 2>&1
-if [ -s "$flog" ] && grep -q '"hook":"agmsg-kit"' "$flog" && grep -q '"event":"install_fail"' "$flog"; then
+if [ -s "$flog" ] && python3 -c 'import json,sys; d=json.loads(open(sys.argv[1]).readline()); sys.exit(0 if d.get("hook")=="agmsg-kit" and d.get("event")=="install_fail" else 1)' "$flog" 2>/dev/null; then
     pass "failure logged as JSON to AGMSG_FAILURE_LOG"
 else
     bad "no JSON failure line written"

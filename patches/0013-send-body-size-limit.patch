@@ -1,0 +1,27 @@
+diff --git a/scripts/send.sh b/scripts/send.sh
+index c21dd8d..a0facee 100755
+--- a/scripts/send.sh
++++ b/scripts/send.sh
+@@ -8,6 +8,22 @@ FROM="${2:?Missing from agent}"
+ TO="${3:?Missing to agent}"
+ BODY="${4:?Missing message body}"
+ 
++# Cap body size to catch runaway / oversized payloads and to avoid an obscure
++# "Argument list too long" crash: send passes the whole INSERT (incl. body) as
++# one sqlite3 argument, so a large body overflows the OS command-line limit
++# (~32K on Windows; quote-escaping can ~2x it). REJECT, not truncate. agmsg-kit.
++_AGMSG_MAX_BODY="${AGMSG_MAX_BODY_BYTES:-}"
++if [ -z "$_AGMSG_MAX_BODY" ]; then
++  case "$(uname -s 2>/dev/null)" in
++    MINGW*|MSYS*|CYGWIN*) _AGMSG_MAX_BODY=16000 ;;
++    *) _AGMSG_MAX_BODY=65536 ;;
++  esac
++fi
++if [ "$_AGMSG_MAX_BODY" -gt 0 ] 2>/dev/null && [ "${#BODY}" -gt "$_AGMSG_MAX_BODY" ]; then
++  echo "agmsg: message body too large: ${#BODY} chars (limit $_AGMSG_MAX_BODY); set AGMSG_MAX_BODY_BYTES to override (0 disables). Large payloads belong in a file referenced by path." >&2
++  exit 1
++fi
++
+ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ source "$SCRIPT_DIR/lib/storage.sh"
+ DB="$(agmsg_db_path)"

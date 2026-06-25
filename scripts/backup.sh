@@ -19,7 +19,10 @@ DBDIR="${AGMSG_STORAGE_PATH:-$SK/db}"
 DEST="${1:-$ROOT/_backups/agmsg-$(date +%Y%m%d-%H%M%S)}"
 mkdir -p "$DEST"
 
-# Flush WAL into the main DB so the copied file set is self-consistent.
+# Flush WAL into the main DB to minimize the live -wal that gets copied. This is
+# a non-exclusive (hot) copy: a writer active during the cp may leave the
+# snapshot slightly behind, but SQLite recovers a partial WAL on open, so the
+# backup is still usable. Stop the agents first if you want an exact snapshot.
 if [ -f "$DBDIR/messages.db" ]; then
     sqlite3 "$DBDIR/messages.db" "PRAGMA wal_checkpoint(TRUNCATE);" >/dev/null 2>&1 || true
 fi
@@ -27,5 +30,6 @@ fi
 cp -r "$DBDIR" "$DEST/db" 2>/dev/null || true
 [ -d "$SK/teams" ] && cp -r "$SK/teams" "$DEST/teams" 2>/dev/null || true
 
-count="$(sqlite3 "$DBDIR/messages.db" 'SELECT count(*) FROM messages;' 2>/dev/null || echo '?')"
+# Count from the BACKUP, not the live DB, so the number reflects what was captured.
+count="$(sqlite3 "$DEST/db/messages.db" 'SELECT count(*) FROM messages;' 2>/dev/null || echo '?')"
 echo "agmsg-kit: backed up store ($count messages) + teams -> $DEST"

@@ -33,8 +33,8 @@ echo "== upstream clone + patches =="
 CLONE="${AGMSG_SMOKE_CLONE:-}"
 if [ -z "$CLONE" ]; then
     CLONE="$(mktemp -d)/agmsg"
-    if git -c advice.detachedHead=false -c core.autocrlf=false clone -q --depth 1 --branch v1.1.0 "$AGMSG_UPSTREAM" "$CLONE" 2>/dev/null; then
-        pass "clone upstream v1.1.0"
+    if git -c advice.detachedHead=false -c core.autocrlf=false clone -q --depth 1 --branch v1.1.1 "$AGMSG_UPSTREAM" "$CLONE" 2>/dev/null; then
+        pass "clone upstream v1.1.1"
     else
         bad "clone upstream (network unavailable?)"
         echo; echo "smoke: $fail FAIL"; exit "$fail"
@@ -108,9 +108,29 @@ else
     bad "patched rename* syntax error"
 fi
 
-echo "== 0.2.0 helpers =="
-# prune.sh resolves the DB via AGMSG_STORAGE_PATH (set above); 9999d -> no-op.
-if bash "$ROOT/scripts/prune.sh" 9999 >/dev/null 2>&1; then pass "prune.sh runs (no-op)"; else bad "prune.sh errored"; fi
+echo "== 0013 body-size guard =="
+big="$(head -c 20000 /dev/zero | tr '\0' x)"
+if AGMSG_MAX_BODY_BYTES=16000 bash "$SKS/send.sh" t cc codex "$big" >/dev/null 2>&1; then
+    bad "0013: oversized body not rejected"
+else
+    pass "0013: rejects oversized body"
+fi
+if bash "$SKS/send.sh" t cc codex "ok small body" >/dev/null 2>&1; then pass "0013: allows normal body"; else bad "0013: blocked a normal body"; fi
+
+echo "== 0014 agent-name validation =="
+vproj="$(mktemp -d)"
+if bash "$SKS/join.sh" t cc claude-code "$vproj" >/dev/null 2>&1; then pass "0014: accepts valid name"; else bad "0014: rejected a valid name"; fi
+if bash "$SKS/join.sh" t "bad.name" codex "$vproj" >/dev/null 2>&1; then bad "0014: accepted dotted name"; else pass "0014: rejects dotted (JSON-path) name"; fi
+
+echo "== prune.sh (behavioral) =="
+PDB="$AGMSG_STORAGE_PATH/messages.db"
+sqlite3 "$PDB" "INSERT INTO messages (team,from_agent,to_agent,body,created_at,read_at) VALUES ('t','cc','codex','OLD-READ',strftime('%Y-%m-%dT%H:%M:%SZ','now','-100 days'),strftime('%Y-%m-%dT%H:%M:%SZ','now','-100 days'));" 2>/dev/null
+sqlite3 "$PDB" "INSERT INTO messages (team,from_agent,to_agent,body,created_at) VALUES ('t','cc','codex','NEW-UNREAD',strftime('%Y-%m-%dT%H:%M:%SZ','now'));" 2>/dev/null
+bash "$ROOT/scripts/prune.sh" 30 >/dev/null 2>&1
+gone="$(sqlite3 "$PDB" "SELECT count(*) FROM messages WHERE body='OLD-READ';" 2>/dev/null)"
+kept="$(sqlite3 "$PDB" "SELECT count(*) FROM messages WHERE body='NEW-UNREAD';" 2>/dev/null)"
+if [ "$gone" = 0 ] && [ "$kept" = 1 ]; then pass "prune deletes old READ, keeps recent UNREAD"; else bad "prune wrong (old-read=$gone unread=$kept)"; fi
+if bash "$ROOT/scripts/prune.sh" 0 >/dev/null 2>&1; then bad "prune did not reject DAYS=0"; else pass "prune rejects DAYS=0"; fi
 
 echo
 if [ "$fail" = 0 ]; then echo "smoke: PASS"; else echo "smoke: $fail FAIL"; fi

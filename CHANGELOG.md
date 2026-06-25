@@ -3,6 +3,37 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.3.0] - 2026-06-25
+
+### Fixed
+- **[security] `install.sh` failure log could leak a secret** — `_log_failure`
+  fell back to writing the raw, unredacted message (and unescaped, malformed
+  JSON) when `python3` was absent or `json.dumps` failed. Rewritten as a single
+  redact→json pipe that **skips the line entirely on any failure** — never writes
+  an unredacted byte, always valid JSON. (Found by independent QA.)
+
+### Changed
+- **Bumped upstream pin `v1.1.0` → `v1.1.1`** (`b4492e2`). Gains upstream's
+  `delivery.sh` fix (`kill_all_watchers` now scoped to `(project,type)` — a
+  silent cross-type watcher-teardown bug), Monitor-arg `printf %q` quoting (#188),
+  watcher session-death teardown (#67), and the new `grok-build` driver. All kit
+  patches verified to apply; the three bugs they fix still persist upstream.
+- `backup.sh` now counts from the snapshot (not the live DB) and documents the
+  hot-copy trade-off honestly.
+
+### Added
+- **`patches/0013-send-body-size-limit.patch`** — `send.sh` rejects oversized
+  bodies (`AGMSG_MAX_BODY_BYTES`, default 16000 on Windows / 65536 elsewhere; 0
+  disables). Catches runaway payloads **and** the obscure `Argument list too
+  long` crash (send passes the whole INSERT as one `sqlite3` arg → overflows the
+  ~32K Windows command line). REJECT, not truncate.
+- **`patches/0014-validate-agent-name.patch`** — `agmsg_validate_agent_name`
+  (rejects `. / \ " [ ]` / control), called in `join.sh`. Closes the
+  `$.agents.$NAME` JSON-path misrouting for dotted/bracket names.
+- `prune.sh` rejects `DAYS=0` (would delete every read message). Smoke now tests
+  prune **behaviorally** (old-read deleted, recent-unread kept) and exercises
+  0013/0014.
+
 ## [0.2.1] - 2026-06-25
 
 ### Added

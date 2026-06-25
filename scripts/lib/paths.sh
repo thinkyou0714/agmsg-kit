@@ -30,8 +30,8 @@ AGMSG_CC="${AGMSG_CC:-cc}"
 AGMSG_CO="${AGMSG_CO:-codex}"
 AGMSG_PROJECT="${AGMSG_PROJECT:-$PWD}"
 AGMSG_UPSTREAM="${AGMSG_UPSTREAM:-https://github.com/fujibee/agmsg.git}"
-# Pinned upstream commit (fujibee/agmsg v1.1.0). See VENDORED.md.
-AGMSG_PIN="${AGMSG_PIN:-e3031b8336e4cde99af863718d318df436e74206}"
+# Pinned upstream commit (fujibee/agmsg v1.1.1). See VENDORED.md.
+AGMSG_PIN="${AGMSG_PIN:-b4492e2019a140938292b7684bd3bad23c2774f5}"
 AGMSG_SKILL_DIR="${AGMSG_SKILL_DIR:-$HOME/.agents/skills/$AGMSG_CMD}"
 
 export AGMSG_KIT_ROOT AGMSG_CMD AGMSG_TEAM AGMSG_CC AGMSG_CO AGMSG_PROJECT \
