@@ -3,6 +3,14 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.2.1] - 2026-06-25
+
+### Added
+- Opt-in structured failure logging: set `AGMSG_FAILURE_LOG` to a JSONL path and
+  `install.sh` appends a redacted `{"ts","hook":"agmsg-kit","event":"install_fail","detail"}`
+  line on failure. Off by default (the public kit writes nowhere); secrets are
+  redacted via `secret_redact.py`. Integrates with a personal `failures.jsonl`.
+
 ## [0.2.0] - 2026-06-24
 
 ### Added

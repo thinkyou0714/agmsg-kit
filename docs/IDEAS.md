@@ -73,7 +73,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | # | Idea | I×E | Status |
 |---|---|---|---|
 | 40 | `make doctor` read-only health check (sqlite/git/skill present) | 3×1 | [done] |
-| 41 | Log kit failures to `~/.claude/failures.jsonl` (LAB schema) with redaction | 3×2 | [rec] |
+| 41 | Opt-in failure log (`AGMSG_FAILURE_LOG`, redacted JSONL) | 3×2 | [done] |
 | 42 | `history.sh` already provides a full audit trail of all messages | 3×1 | [done-upstream] |
 | 43 | Count unread-by-agent / messages-per-day as a tiny metrics view | 2×2 | [road] |
 | 44 | Optional structured event log (JSONL) alongside the message table | 2×3 | [road] |

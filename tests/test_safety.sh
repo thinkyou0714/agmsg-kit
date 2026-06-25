@@ -60,6 +60,25 @@ else
     bad "0010 does not escape all four fields"
 fi
 
+echo "== opt-in failure log (AGMSG_FAILURE_LOG) =="
+flog="$(mktemp)"
+# Trigger a die() via an unknown flag; assert a redacted JSON line is appended.
+AGMSG_FAILURE_LOG="$flog" bash "$ROOT/install.sh" --bogus-flag-xyz >/dev/null 2>&1
+if [ -s "$flog" ] && grep -q '"hook":"agmsg-kit"' "$flog" && grep -q '"event":"install_fail"' "$flog"; then
+    pass "failure logged as JSON to AGMSG_FAILURE_LOG"
+else
+    bad "no JSON failure line written"
+fi
+# Valid JSON?
+if python3 -c 'import json,sys; [json.loads(l) for l in open(sys.argv[1]) if l.strip()]' "$flog" 2>/dev/null; then
+    pass "failure log lines are valid JSON"
+else
+    bad "failure log line is not valid JSON"
+fi
+# Default OFF: AGMSG_FAILURE_LOG unset in this shell -> die path unchanged.
+out="$(bash "$ROOT/install.sh" --bogus-flag-xyz 2>&1)"
+if printf '%s' "$out" | grep -q 'unknown arg'; then pass "still dies cleanly with log off"; else bad "die path changed with log off"; fi
+
 echo
 if [ "$fail" = 0 ]; then echo "test_safety: PASS"; else echo "test_safety: $fail FAIL"; fi
 exit "$fail"

@@ -24,7 +24,20 @@ WIRE=1
 ALSO=()
 
 say() { printf '  %s\n' "$*"; }
-die() { printf 'agmsg-kit: %s\n' "$*" >&2; exit 1; }
+
+# Optional structured failure log (opt-in via AGMSG_FAILURE_LOG). OFF by default
+# so the public kit writes nowhere; point it at a JSONL sink (e.g. a personal
+# ~/.claude/failures.jsonl) to integrate with your observability. Redacted.
+_log_failure() {
+    [ -n "${AGMSG_FAILURE_LOG:-}" ] || return 0
+    local detail ts
+    detail="$(printf '%s' "$1" | python3 "$ROOT/home/lib/secret_redact.py" 2>/dev/null || printf '%s' "$1")"
+    ts="$(date -u +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || echo unknown)"
+    detail="$(printf '%s' "$detail" | python3 -c 'import json,sys; sys.stdout.write(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$1")"
+    printf '{"ts":"%s","hook":"agmsg-kit","event":"install_fail","detail":%s}\n' "$ts" "$detail" \
+        >> "$AGMSG_FAILURE_LOG" 2>/dev/null || true
+}
+die() { _log_failure "$*"; printf 'agmsg-kit: %s\n' "$*" >&2; exit 1; }
 run() {
     local desc="$1"; shift
     if [ "$DRY_RUN" = 1 ]; then say "[dry-run] $desc"; else say "$desc"; "$@"; fi
