@@ -1,5 +1,5 @@
 diff --git a/scripts/join.sh b/scripts/join.sh
-index cdff6f1..ecc24bd 100755
+index ec40bf4..b1fb9be 100755
 --- a/scripts/join.sh
 +++ b/scripts/join.sh
 @@ -30,6 +30,7 @@ TEAMS_DIR="$SCRIPT_DIR/../teams"

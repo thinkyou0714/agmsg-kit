@@ -1,8 +1,8 @@
 diff --git a/scripts/rename-team.sh b/scripts/rename-team.sh
-index 4423f58..8eede48 100755
+index 23397aa..9ebefb7 100755
 --- a/scripts/rename-team.sh
 +++ b/scripts/rename-team.sh
-@@ -26,6 +26,9 @@ agmsg_validate_team_name "$OLD_TEAM" || exit 1
+@@ -28,6 +28,9 @@ agmsg_validate_team_name "$OLD_TEAM" || exit 1
  agmsg_validate_team_name "$NEW_TEAM" || exit 1
  TEAMS_DIR="$SCRIPT_DIR/../teams"
  DB="$(agmsg_db_path)"
@@ -12,7 +12,7 @@ index 4423f58..8eede48 100755
  OLD_DIR="$TEAMS_DIR/$OLD_TEAM"
  NEW_DIR="$TEAMS_DIR/$NEW_TEAM"
  
-@@ -53,7 +56,7 @@ fi
+@@ -78,7 +81,7 @@ fi
  
  # --- Update messages in DB ---
  if [ -f "$DB" ]; then
@@ -20,12 +20,12 @@ index 4423f58..8eede48 100755
 +  agmsg_sqlite "$DB" "UPDATE messages SET team='$(_agmsg_sqlesc "$NEW_TEAM")' WHERE team='$(_agmsg_sqlesc "$OLD_TEAM")';"
  fi
  
- echo "Renamed team $OLD_TEAM → $NEW_TEAM"
+ agmsg_lock_release
 diff --git a/scripts/rename.sh b/scripts/rename.sh
-index 123bf8a..9f9a642 100755
+index 5a90b54..dcf8b1c 100755
 --- a/scripts/rename.sh
 +++ b/scripts/rename.sh
-@@ -17,6 +17,9 @@ source "$SCRIPT_DIR/lib/validate.sh"
+@@ -19,6 +19,9 @@ source "$SCRIPT_DIR/lib/validate.sh"
  agmsg_validate_team_name "$TEAM" || exit 1
  TEAMS_DIR="$SCRIPT_DIR/../teams"
  DB="$(agmsg_db_path)"
@@ -35,7 +35,7 @@ index 123bf8a..9f9a642 100755
  TEAM_CONFIG="$TEAMS_DIR/$TEAM/config.json"
  
  if [ ! -f "$TEAM_CONFIG" ]; then
-@@ -50,8 +53,8 @@ echo "$UPDATED" > "$TEAM_CONFIG"
+@@ -56,8 +59,8 @@ agmsg_write_atomic "$TEAM_CONFIG" "$UPDATED"
  
  # --- Update messages in DB ---
  if [ -f "$DB" ]; then
@@ -45,4 +45,4 @@ index 123bf8a..9f9a642 100755
 +  agmsg_sqlite "$DB" "UPDATE messages SET to_agent='$(_agmsg_sqlesc "$NEW_NAME")' WHERE team='$(_agmsg_sqlesc "$TEAM")' AND to_agent='$(_agmsg_sqlesc "$OLD_NAME")';"
  fi
  
- echo "Renamed $OLD_NAME → $NEW_NAME in team $TEAM"
+ agmsg_lock_release

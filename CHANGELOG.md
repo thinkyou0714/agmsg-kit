@@ -3,6 +3,26 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.5.0] - 2026-06-27
+
+### Changed
+- **Bumped upstream pin `v1.1.1` → `v1.1.2`** (`9110be3`); all kit patches
+  regenerated against it.
+
+### Removed
+- **Dropped patch `0011` (check-inbox `suggest=`)** — it was **merged upstream**
+  (PR #224) and is present in v1.1.2, so the kit no longer carries it. The patch
+  set is now 5 (0010, 0012, 0013, 0014, 0015).
+
+### Notes
+- At the v1.1.2 tag the escaping (0010/0012) and ARG_MAX (0015) bugs are **still
+  present**, so those patches remain. The maintainer credited the diagnosis and
+  is folding equivalent escaping into upstream **#221**; when that lands in a
+  release, 0010/0012 get dropped too (`make verify-patches`/CI will flag it).
+- Open upstream PRs from this kit: **#241** (0015 stdin/ARG_MAX), **#242** (0014
+  agent-name validation, which the maintainer is tracking as a follow-up). #223
+  (0010+0012) will be closed in favor of #221.
+
 ## [0.4.0] - 2026-06-27
 
 ### Added

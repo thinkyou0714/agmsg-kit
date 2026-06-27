@@ -33,8 +33,8 @@ echo "== upstream clone + patches =="
 CLONE="${AGMSG_SMOKE_CLONE:-}"
 if [ -z "$CLONE" ]; then
     CLONE="$(mktemp -d)/agmsg"
-    if git -c advice.detachedHead=false -c core.autocrlf=false clone -q --depth 1 --branch v1.1.1 "$AGMSG_UPSTREAM" "$CLONE" 2>/dev/null; then
-        pass "clone upstream v1.1.1"
+    if git -c advice.detachedHead=false -c core.autocrlf=false clone -q --depth 1 --branch v1.1.2 "$AGMSG_UPSTREAM" "$CLONE" 2>/dev/null; then
+        pass "clone upstream v1.1.2"
     else
         bad "clone upstream (network unavailable?)"
         echo; echo "smoke: $fail FAIL"; exit "$fail"
@@ -80,20 +80,7 @@ else
     bad "0010: a single-quote in from_agent broke the INSERT"
 fi
 
-echo "== 0011 regression: suggest= guard (portable + behavioral) =="
-if grep -qF 'grep -Eq "not_joined=true|suggest=true"' "$CLONE/scripts/check-inbox.sh" \
-    && grep -qF "sed -n 's/^agent=" "$CLONE/scripts/check-inbox.sh"; then
-    pass "check-inbox uses portable suggest= guard + ^agent= anchor"
-else
-    bad "0011: suggest= guard non-portable (BSD grep) or ^agent= anchor missing"
-fi
-# The alternation must actually fire with THIS platform's grep (catches the BSD
-# vs GNU '\|' trap that a static file check would mask).
-if printf '%s' 'suggest=true agents=a,b teams=lab' | grep -Eq "not_joined=true|suggest=true"; then
-    pass "suggest= alternation fires (portable ERE)"
-else
-    bad "suggest= alternation does not fire on this platform's grep"
-fi
+# (0011 suggest= fix was merged upstream in v1.1.2 — no longer a kit patch.)
 
 echo "== 0012 regression: rename* escape SQL identifiers =="
 if grep -qF '_agmsg_sqlesc "$NEW_NAME"' "$CLONE/scripts/rename.sh" \

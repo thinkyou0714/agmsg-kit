@@ -49,7 +49,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 23 | `secret_redact.py` (8-pattern) for any tooling that logs agmsg traffic | 3×1 | [done] |
 | 24 | Team-token prefix convention to flag injected/foreign messages | 3×1 | [done-doc] |
 | 25 | Human-in-the-loop gate for irreversible actions, regardless of initiator | 5×1 | [done-doc] |
-| 26 | `suggest=`/identity fix so delivery can't mis-target (patch 0011) | 3×1 | [done] |
+| 26 | `suggest=`/identity fix so delivery can't mis-target (patch 0011 — **merged upstream** PR #224, dropped from kit) | 3×1 | [done-upstream] |
 | 27 | Optional: a hook that flags message bodies containing key-like strings | 3×3 | [road] |
 | 28 | SECURITY.md threat model + private vulnerability reporting path | 3×1 | [done] |
 | 29 | Validate team names to block path traversal in `teams/` (upstream #140) | 3×2 | [done-upstream] |
@@ -141,7 +141,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 80 | Patches generated against the pin → guaranteed-apply, PR-ready | 5×2 | [done] |
 | 81 | Born-ignore machine-local `.codex/hooks.json` via `.git/info/exclude` | 3×1 | [done] |
 | 82 | Tag-driven release workflow asserting VERSION==tag==CHANGELOG | 3×1 | [done] |
-| 83 | Submit 0010 + 0011 upstream as PRs | 4×2 | [rec] |
+| 83 | Submit fixes upstream as PRs (0011 **merged** #224; 0015 #241, 0014 #242, 0010+0012 #223 open) | 4×2 | [done] |
 | 84 | Optional vendored (committed) copy for fully-offline install | 2×3 | [rej] drift + license noise; clone-at-install preferred |
 | 85 | npm/`npx` thin bootstrapper | 1×3 | [rej] upstream already offers it; out of scope |
 

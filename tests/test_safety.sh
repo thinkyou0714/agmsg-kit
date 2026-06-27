@@ -57,14 +57,6 @@ else
     bad "0012 missing rename identifier escaping"
 fi
 
-# Guard: 0011 uses the portable grep -Eq form (not GNU-only \|).
-P0011="$ROOT/patches/0011-check-inbox-handle-suggest-identity.patch"
-if grep -qF 'grep -Eq "not_joined=true|suggest=true"' "$P0011"; then
-    pass "0011 uses portable grep -Eq"
-else
-    bad "0011 not using portable grep -Eq (BSD grep would no-op)"
-fi
-
 # Guard: the SQL-escaping fix must escape all four interpolated fields.
 P0010="$ROOT/patches/0010-send-escape-all-sql-fields.patch"
 if grep -qF '_agmsg_sqlesc "$TEAM"' "$P0010" && grep -qF '_agmsg_sqlesc "$FROM"' "$P0010" \

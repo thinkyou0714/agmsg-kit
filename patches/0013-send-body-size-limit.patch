@@ -1,5 +1,5 @@
 diff --git a/scripts/send.sh b/scripts/send.sh
-index c21dd8d..536169f 100755
+index db1ca38..8a71eb0 100755
 --- a/scripts/send.sh
 +++ b/scripts/send.sh
 @@ -8,6 +8,22 @@ FROM="${2:?Missing from agent}"
