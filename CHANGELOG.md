@@ -3,6 +3,27 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.3.1] - 2026-06-27
+
+### Fixed
+Three bugs an independent adversarial QA found in v0.3.0's own new code:
+- **`backup.sh` silently exited 0 on a failed copy** (`cp … || true`) — a
+  half-made backup could be mistaken for a good one before a `prune`, risking
+  data loss. The DB copy now fails loudly (exit 1); `teams/` stays best-effort.
+- **`patches/0013` counted characters, not bytes** (`${#BODY}`) — multibyte
+  UTF-8 (e.g. ~16000 CJK chars ≈ 64 KB) slipped past the guard yet still
+  overflowed the Windows command line. Now measures bytes via `printf … | wc -c`.
+- **`patches/0013` silently bypassed the guard on an invalid
+  `AGMSG_MAX_BODY_BYTES`** (`abc`, `-5`). Now an invalid/empty value falls back
+  to the protective platform default; only a valid non-negative integer is
+  honored (`0` still disables).
+
+### Notes
+- No pin bump: upstream has no new tag since v1.1.1 (`main` moved but unreleased).
+- `#8` (wrap check-inbox in `timeout`) deferred with cause: Windows `timeout.exe`
+  ≠ GNU `timeout`, and check-inbox is already bounded by `busy_timeout=5000`, so
+  it nets ~0 value at real Windows risk — better as an upstream change.
+
 ## [0.3.0] - 2026-06-25
 
 ### Fixed

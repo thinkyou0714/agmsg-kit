@@ -27,8 +27,10 @@ if [ -f "$DBDIR/messages.db" ]; then
     sqlite3 "$DBDIR/messages.db" "PRAGMA wal_checkpoint(TRUNCATE);" >/dev/null 2>&1 || true
 fi
 
-cp -r "$DBDIR" "$DEST/db" 2>/dev/null || true
-[ -d "$SK/teams" ] && cp -r "$SK/teams" "$DEST/teams" 2>/dev/null || true
+# The DB copy is the critical artifact — fail loudly so a half-made backup can't
+# be mistaken for a good one (e.g. before a prune). teams/ is secondary.
+cp -r "$DBDIR" "$DEST/db" || { echo "agmsg-kit: backup FAILED — could not copy $DBDIR -> $DEST/db" >&2; exit 1; }
+[ -d "$SK/teams" ] && { cp -r "$SK/teams" "$DEST/teams" 2>/dev/null || true; }
 
 # Count from the BACKUP, not the live DB, so the number reflects what was captured.
 count="$(sqlite3 "$DEST/db/messages.db" 'SELECT count(*) FROM messages;' 2>/dev/null || echo '?')"

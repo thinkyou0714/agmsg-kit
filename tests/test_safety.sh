@@ -93,6 +93,14 @@ fi
 out="$(bash "$ROOT/install.sh" --bogus-flag-xyz 2>&1)"
 if printf '%s' "$out" | grep -q 'unknown arg'; then pass "still dies cleanly with log off"; else bad "die path changed with log off"; fi
 
+echo "== backup.sh fails loudly on copy error =="
+_sk="$(mktemp -d)"; _dest="$(mktemp -d)"
+if AGMSG_SKILL_DIR="$_sk" AGMSG_STORAGE_PATH="/nonexistent/agmsg-$$-src" bash "$ROOT/scripts/backup.sh" "$_dest/bk" >/dev/null 2>&1; then
+    bad "backup.sh exited 0 despite a failed copy (silent-incomplete backup)"
+else
+    pass "backup.sh exits non-zero when the DB copy fails"
+fi
+
 echo
 if [ "$fail" = 0 ]; then echo "test_safety: PASS"; else echo "test_safety: $fail FAIL"; fi
 exit "$fail"

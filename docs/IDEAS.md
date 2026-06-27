@@ -20,7 +20,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 5 | `busy_timeout` on every file-backed sqlite call (upstream `agmsg_sqlite`) | 4×2 | [done-upstream] |
 | 6 | Retry-once-after-init on first concurrent write (upstream #114) | 3×2 | [done-upstream] |
 | 7 | `mkdir`-mutex for actas stale-lock reclaim (upstream) | 3×3 | [done-upstream] |
-| 8 | Wrap Stop-hook inbox check in `timeout N` so a hang never blocks a turn | 4×2 | [rec] |
+| 8 | Wrap Stop-hook check-inbox in `timeout` (deferred: Windows `timeout.exe` ≠ GNU; already bounded by `busy_timeout=5000`; better upstream) | 4×2 | [road] |
 | 9 | Bound message body size at `send.sh` (patch 0013; platform-aware default) | 3×2 | [done] |
 | 9b | Upstream: pipe SQL via stdin (not argv) to remove the ARG_MAX limit entirely | 4×3 | [road] |
 | 10 | Single-writer assertion / advisory lock around `config.sh set` (YAML race) | 2×2 | [road] |
