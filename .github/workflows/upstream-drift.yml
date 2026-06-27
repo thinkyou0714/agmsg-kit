@@ -1,0 +1,45 @@
+name: upstream-drift
+
+# Weekly check: is the pinned fujibee/agmsg commit behind the latest upstream
+# tag? If so, open (or reuse) an issue so the pin gets a deliberate review.
+# Automates docs/UPSTREAM-REVIEW.md. Off-minute cron to avoid top-of-hour load.
+on:
+  schedule:
+    - cron: "17 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare pin to latest upstream tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pin="$(grep -oE 'AGMSG_PIN=[0-9a-f]+' .env.example | cut -d= -f2)"
+          tag="$(git ls-remote --tags --refs https://github.com/fujibee/agmsg.git \
+                  | awk -F/ '{print $NF}' | sort -V | tail -1)"
+          sha="$(git ls-remote https://github.com/fujibee/agmsg.git "refs/tags/$tag" | awk '{print $1}')"
+          echo "pin=$pin  latest_tag=$tag  latest_sha=$sha"
+          if [ -z "$sha" ] || [ "$pin" = "$sha" ]; then
+            echo "Pin is current ($tag). Nothing to do."
+            exit 0
+          fi
+          title="upstream drift: pin is behind $tag"
+          if gh issue list --state open --search "$title in:title" | grep -qF "$title"; then
+            echo "Drift issue already open."
+            exit 0
+          fi
+          gh issue create --title "$title" --body \
+            "The pinned upstream commit \`$pin\` is behind the latest tag **$tag** (\`$sha\`).
+          Review with \`docs/UPSTREAM-REVIEW.md\` and bump deliberately if appropriate
+          (\`make refresh-patches\` + \`make verify-patches\`)." \
+            --label upstream 2>/dev/null \
+            || gh issue create --title "$title" --body \
+            "Pinned upstream \`$pin\` is behind latest tag **$tag** (\`$sha\`). See docs/UPSTREAM-REVIEW.md."

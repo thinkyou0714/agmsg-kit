@@ -22,7 +22,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 7 | `mkdir`-mutex for actas stale-lock reclaim (upstream) | 3×3 | [done-upstream] |
 | 8 | Wrap Stop-hook check-inbox in `timeout` (deferred: Windows `timeout.exe` ≠ GNU; already bounded by `busy_timeout=5000`; better upstream) | 4×2 | [road] |
 | 9 | Bound message body size at `send.sh` (patch 0013; platform-aware default) | 3×2 | [done] |
-| 9b | Upstream: pipe SQL via stdin (not argv) to remove the ARG_MAX limit entirely | 4×3 | [road] |
+| 9b | Pipe SQL via stdin (not argv) to remove the ARG_MAX limit entirely (patch 0015) | 4×3 | [done] |
 | 10 | Single-writer assertion / advisory lock around `config.sh set` (YAML race) | 2×2 | [road] |
 
 ## B. Windows / cross-platform
@@ -93,7 +93,7 @@ larger/roadmap · `[rej]` rejected (reason given).
 | 52 | `verify-patches` asserts the set still applies to the pin | 4×1 | [done] |
 | 53 | Migrate smoke to `bats-core` for richer assertions | 2×3 | [road] |
 | 54 | `shfmt --diff` formatting gate | 2×2 | [rec] |
-| 55 | Weekly CI job: diff pin vs upstream `main`, open issue on drift | 3×3 | [road] |
+| 55 | Weekly CI job: open an issue when the pin falls behind the latest upstream tag | 3×3 | [done] |
 | 56 | `actionlint` on the workflow YAML | 2×1 | [done] |
 
 ## G. Developer experience

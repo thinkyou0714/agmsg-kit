@@ -1,23 +1,18 @@
 diff --git a/scripts/send.sh b/scripts/send.sh
-index c21dd8d..81dce19 100755
+index c21dd8d..536169f 100755
 --- a/scripts/send.sh
 +++ b/scripts/send.sh
-@@ -8,6 +8,27 @@ FROM="${2:?Missing from agent}"
+@@ -8,6 +8,22 @@ FROM="${2:?Missing from agent}"
  TO="${3:?Missing to agent}"
  BODY="${4:?Missing message body}"
  
-+# Cap body size: runaway guard + avoid an obscure "Argument list too long" crash
-+# (send passes the whole INSERT, incl. body, as one sqlite3 arg -> overflows the
-+# OS command line, ~32K on Windows). Measure BYTES (not chars) so multibyte UTF-8
-+# is bounded correctly. An invalid AGMSG_MAX_BODY_BYTES falls back to the
-+# protective default (fail safe). REJECT, not truncate. agmsg-kit.
++# Cap body size to catch runaway payloads (measure BYTES so multibyte UTF-8 is
++# bounded correctly). An invalid AGMSG_MAX_BODY_BYTES falls back to the default
++# (fail safe). REJECT, not truncate. With patch 0015 (stdin SQL) there is no
++# command-line size limit, so this is purely a runaway guard. agmsg-kit.
 +_AGMSG_MAX_BODY="${AGMSG_MAX_BODY_BYTES:-}"
 +case "$_AGMSG_MAX_BODY" in
-+  ''|*[!0-9]*)
-+    case "$(uname -s 2>/dev/null)" in
-+      MINGW*|MSYS*|CYGWIN*) _AGMSG_MAX_BODY=16000 ;;
-+      *) _AGMSG_MAX_BODY=65536 ;;
-+    esac ;;
++  ''|*[!0-9]*) _AGMSG_MAX_BODY=65536 ;;
 +esac
 +if [ "$_AGMSG_MAX_BODY" -gt 0 ]; then
 +  _agmsg_body_bytes=$(printf %s "$BODY" | wc -c | tr -d " ")

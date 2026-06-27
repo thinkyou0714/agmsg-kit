@@ -117,6 +117,10 @@ else
 fi
 if bash "$SKS/send.sh" t cc codex "ok small body" >/dev/null 2>&1; then pass "0013: allows normal body"; else bad "0013: blocked a normal body"; fi
 
+echo "== 0015 stdin-pipe: large body sends (previously an ARG_MAX crash) =="
+mid="$(head -c 40000 /dev/zero | tr '\0' x)"
+if bash "$SKS/send.sh" t cc codex "$mid" >/dev/null 2>&1; then pass "0015: 40KB body sends via stdin"; else bad "0015: 40KB body failed (ARG_MAX?)"; fi
+
 echo "== 0014 agent-name validation =="
 vproj="$(mktemp -d)"
 if bash "$SKS/join.sh" t cc claude-code "$vproj" >/dev/null 2>&1; then pass "0014: accepts valid name"; else bad "0014: rejected a valid name"; fi

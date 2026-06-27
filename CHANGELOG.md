@@ -3,6 +3,31 @@
 All notable changes to agmsg-kit. Format follows [Keep a Changelog](https://keepachangelog.com);
 this project adheres to [Semantic Versioning](https://semver.org).
 
+## [0.4.0] - 2026-06-27
+
+### Added
+- **`patches/0015-send-sql-via-stdin.patch`** — `send.sh` pipes the INSERT to
+  `sqlite3` via **stdin** instead of as a command-line argument, **removing the
+  ARG_MAX limit entirely**: a large body (code, diffs) that previously crashed
+  with `Argument list too long` on Windows (~32K command line) now sends. This is
+  the root-cause fix for what 0013 only guarded against. PR-ready.
+- Weekly **upstream-drift CI** (`.github/workflows/upstream-drift.yml`) — opens
+  (or reuses) an issue when the pinned commit falls behind the latest upstream
+  tag, automating `docs/UPSTREAM-REVIEW.md`.
+
+### Changed
+- **0013's body-size cap is now a uniform 65536 bytes** (was platform-aware
+  Windows-16000). With 0015 there is no command-line size limit, so the cap is
+  purely a runaway-payload guard. An invalid `AGMSG_MAX_BODY_BYTES` still falls
+  back to the default; `0` disables.
+
+### Notes
+- This ships the last high-value `[road]` item (#9b, stdin SQL) + #55 (drift CI).
+  The remaining roadmap (referee/turn-enforcer agent, structured message schema,
+  schema-migration framework, bats migration, cost metrics, local-LLM summaries)
+  is intentionally **not** auto-built — those are architectural choices to make
+  on request, not defaults for a focused kit.
+
 ## [0.3.1] - 2026-06-27
 
 ### Fixed

@@ -24,9 +24,11 @@ upstream as PRs.
 | `0012-rename-escape-sql-identifiers.patch` | `rename.sh`/`rename-team.sh` escape SQL identifiers in the `UPDATE`s. | PR-ready |
 | `0013-send-body-size-limit.patch` | `send.sh` rejects oversized bodies (`AGMSG_MAX_BODY_BYTES`; platform-aware default) — runaway cap **and** avoids the `Argument list too long` crash from passing the whole INSERT as one `sqlite3` arg (~32K Windows cmdline limit). | PR-ready |
 | `0014-validate-agent-name.patch` | adds `agmsg_validate_agent_name` (rejects `. / \ " [ ]` / control), called in `join.sh` — closes the `$.agents.$NAME` JSON-path misrouting. **Stricter than upstream** (rejects exotic names); conservative charset. | PR-ready |
+| `0015-send-sql-via-stdin.patch` | `send.sh` pipes the INSERT to `sqlite3` via stdin (not argv) — removes the ARG_MAX `Argument list too long` crash for large bodies. Stacks on 0010/0013. | PR-ready |
 
-All five verified to apply cleanly to the pinned commit (in order) and to pass
-`bash -n` + the smoke roundtrip + behavioral 0013/0014 tests.
+All six verified to apply cleanly to the pinned commit (in numeric order) and to
+pass `bash -n` + the smoke roundtrip + behavioral 0013/0014/0015 tests. (0010,
+0013, 0015 all touch `send.sh`; 0015 is generated to stack on 0010+0013.)
 
 ## Why the patch set is small (verify, don't assume)
 
