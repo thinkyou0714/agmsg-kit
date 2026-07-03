@@ -68,3 +68,12 @@ the chain. See `docs/GOVERNANCE.md` and `SECURITY.md`.
 
 MIT. Upstream agmsg (MIT) is fetched at install time at the pinned commit in
 `VENDORED.md`, not redistributed here.
+
+## Claude Code で使う (web / cloud 対応)
+
+このリポジトリは **Claude Code on the web** に対応しています。
+
+- lint ツール（ruff/codespell）は `.claude/bootstrap.sh`（SessionStart）が pip で自動インストール。`make test`（smoke roundtrip）は追加依存なし。
+- クラウドセッションは `AGENTS.md` と `.claude/skills/`（例: `run-checks`）を自動ロード。
+- MCP は本リポジトリではローカル専用。詳細は
+  [`.github/docs/claude-code-web-readiness.md`](https://github.com/thinkyou0714/.github/blob/main/docs/claude-code-web-readiness.md)。
